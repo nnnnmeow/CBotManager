@@ -3,9 +3,6 @@
 #include <string>
 #include <fstream>
 #include <ctime>
-#include <Windows.h>
-#include <tlhelp32.h>
-#include <comdef.h>
 #include <iostream>
 
 
@@ -24,41 +21,5 @@ public:
     }
 private:
     std::string _Path = "Log.txt";
-};
-
-class PyOperations
-{
-public:
-    PyOperations(std::string path)
-    {
-        this->_Path = path;
-    }
-    
-    int StartPyFile()
-    {
-        LogFile log;
-        Py_Initialize();
-        FILE* file;
-        errno_t err = fopen_s(&file, _Path.c_str(), "r");
-        if (file == NULL) {
-            log.SendLog("Error: can't open file: " + _Path);
-            Py_Finalize();
-            return 1;
-        }
-        
-        try {
-            PyGILState_STATE gstate;
-            gstate = PyGILState_Ensure();
-            PyRun_SimpleFile(file, _Path.c_str());
-            fclose(file);
-            std::cout << "python closed";
-            PyGILState_Release(gstate);
-        } catch (...) {
-            log.SendLog("Error running Python script");
-        }
-        return 0;
-    }
-private:
-    std::string _Path;
 };
 

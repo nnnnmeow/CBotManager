@@ -1,17 +1,10 @@
-﻿// Dear ImGui: standalone example application for DirectX 11
-
-// Learn about Dear ImGui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/ folder).
-// - Introduction, links and more at the top of imgui.cpp
-
-#include "imgui/imgui.h"
+﻿#include "imgui/imgui.h"
 #include "imgui/backends/imgui_impl_win32.h"
 #include "imgui/backends/imgui_impl_dx11.h"
 #include <d3d11.h>
 #include <tchar.h>
 #include "BLL.h"
+#include "Config.h"
 
 #pragma comment( lib, "d3d11.lib" )
 
@@ -32,38 +25,25 @@ void CreateRenderTarget();
 void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-class BotData {
-public:
-    char name[128] = "";
-    char path[128] = "";
-    static BotData& Instance() {
-        static BotData instance;
-        return instance;
-    }
-
-private:
-    BotData() {}
-    ~BotData() {}
-    BotData(const BotData&) = delete;
-    BotData& operator=(const BotData&) = delete;
-};
-
-void BotInput()
+void BotInput(int index)
 {
-    BotData& BData = BotData::Instance();
-    if (ImGui::Button("Start", ImVec2(70, 19)))
+    std::string& name = Config::Instance()->Name[index];
+    name.resize(256);
+    std::string& path = Config::Instance()->Path[index];
+    path.resize(256);
+    if (ImGui::Button(("Start " + std::to_string(index)).c_str(), ImVec2(70, 19)))
     {
-        StartPy(BData.path);
+        StartPy(path);
     }
     ImGui::SameLine();
     ImGui::PushItemWidth(200);
-    ImGui::InputTextWithHint("##BotName", "Enter Bot Name", BData.name, IM_ARRAYSIZE(BData.name));
+    ImGui::InputTextWithHint(("##BotName" + std::to_string(index)).c_str(), "Enter Bot Name", Config::Instance()->Name[index].data(), Config::Instance()->Name[index].size());
     ImGui::SameLine();
-    ImGui::InputTextWithHint("##BotPath", "Enter Bot Path", BData.path, IM_ARRAYSIZE(BData.path));
+    ImGui::InputTextWithHint(("##BotPath" + std::to_string(index)).c_str(), "Enter Bot Path", Config::Instance()->Path[index].data(), Config::Instance()->Path[index].size());
     ImGui::SameLine();
-    if (ImGui::Button("End", ImVec2(70, 19)))
+    if (ImGui::Button(("End " + std::to_string(index)).c_str(), ImVec2(70, 19)))
     {
-        StopPy();
+        StopPy(path);
     }
 }
 
@@ -242,12 +222,14 @@ int RenderUI()
     }
         for (int i = 0; i < count; i++)
         {
-            ImGui::PushID(i);
-            BotInput();
-            ImGui::PopID();
+            BotInput(i);
         }
         if(ImGui::Button("Add", ImVec2(70, 19)) && count != 15)
+        {
             count++;
+            Config::Instance()->Name.push_back("");
+            Config::Instance()->Path.push_back("");
+        }
 
     ImGui::End();
 
