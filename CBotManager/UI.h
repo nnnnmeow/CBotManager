@@ -233,6 +233,7 @@ int RenderUI()
         ImGui::SameLine();
         if(ImGui::Button("Delete", ImVec2(70, 19)) && count != 0)
         {
+            StopPy(Config::Instance()->Path.back());
             count--;
             Config::Instance()->Name.pop_back();
             Config::Instance()->Path.pop_back();
